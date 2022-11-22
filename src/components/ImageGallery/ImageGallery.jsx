@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import { Component } from 'react';
+import { useState, useEffect } from 'react';
 import { fetchImg } from '../services/img-api';
 import { ImageGalleryItem } from '../ImageGalleryItem/ImageGalleryItem';
 import { toast } from 'react-toastify';
@@ -9,115 +9,101 @@ import { Button } from '../Button/Button';
 
 const PER_PAGE = 12;
 
-export class ImageGallery extends Component {
-  state = {
-    items: [],
-    status: 'idle',
-    page: 1,
-  };
+const Status = {
+  IDLE: 'idle',
+  PENDING: 'pending',
+  RESOLVED: 'resolved',
+  REJECTED: 'rejected',
+};
 
-  loadImg = async newQuery => {
-    const pageNumber = this.state.page;
+export function ImageGallery({ searchQuery }) {
+  const [items, setItems] = useState([]);
+  const [status, setStatus] = useState(Status.IDLE);
+  const [page, setPage] = useState(1);
+  const [query, setQuery] = useState('');
 
-    try {
-      this.setState({ status: 'pending' });
-      const { hits, totalHits } = await fetchImg(
-        newQuery,
-        pageNumber,
-        PER_PAGE
-      );
-
-      this.setState(prevState => ({
-        items:
-          this.state.page === 1 ? [...hits] : [...prevState.items, ...hits],
-        status: 'resolved',
-      }));
-
-      if (totalHits === 0 || hits.lenght === 0) {
-        toast.error(
-          'No results were found for your request! Try something else!'
-        );
-        this.setState({ status: 'idle' });
-        return;
-      }
-      if (pageNumber >= totalHits / hits.length || hits.length === 0) {
-        return toast.error(
-          `We're sorry, but you've reached the end of search results.`
-        );
-      }
-    } catch (error) {
-      console.log(error);
-      this.setState({ status: 'rejected' });
-    }
-  };
-
-  loadMore = () => {
-    this.setState(prevState => ({
-      page: prevState.page + 1,
-    }));
-  };
-
-  componentDidUpdate(prevProps, prevState) {
-    const prevQuery = prevProps.searchQuery;
-    const newQuery = this.props.searchQuery;
-
-    const prevPage = prevState.page;
-    const newPage = this.state.page;
-
-    if (prevQuery !== newQuery) {
-      this.setState({ page: 1, items: [] });
-
-      if (newPage === 1) {
-        this.loadImg(newQuery);
-      }
+  useEffect(() => {
+    if (searchQuery === '') {
       return;
     }
 
-    if (prevPage !== newPage) {
-      this.loadImg(newQuery);
-      return;
+    if (searchQuery !== query) {
+      setPage(1);
+      setItems([]);
+      setQuery(searchQuery);
     }
+
+    setStatus(Status.PENDING);
+    fetchImg(searchQuery, page, PER_PAGE)
+      .then(items => {
+        const { hits, totalHits } = items;
+
+        if (totalHits === 0 || hits.lenght === 0) {
+          toast.error(
+            'No results were found for your request! Try something else!'
+          );
+          setStatus(Status.IDLE);
+          return;
+        } else {
+          setItems(items => (page === 1 ? [...hits] : [...items, ...hits]));
+          setStatus(Status.RESOLVED);
+
+          if (
+            page >= totalHits / hits.length ||
+            (hits.length === 0 && status === Status.RESOLVED)
+          ) {
+            toast.error(
+              `We're sorry, but you've reached the end of search results.`
+            );
+            return;
+          }
+        }
+      })
+      .catch(error => {
+        console.log(error);
+        setStatus(Status.REJECTED);
+      });
+  }, [query, searchQuery, page]);
+
+  const loadMore = () => {
+    setPage(page => page + 1);
+  };
+
+  if (status === Status.IDLE) {
+    return (
+      <Container>
+        <InitialPhrase>Enter a search term.</InitialPhrase>
+      </Container>
+    );
   }
-
-  render() {
-    const { status, items } = this.state;
-
-    if (status === 'idle') {
-      return (
-        <Container>
-          <InitialPhrase>Enter a search term.</InitialPhrase>
-        </Container>
-      );
-    }
-    if (status === 'pending') {
-      return (
-        <Container>
-          <Loader />
-        </Container>
-      );
-    }
-    if (status === 'rejected') {
-      return toast.error('Oops! Something is wrong!');
-    }
-    if (status === 'resolved') {
-      return (
-        <Container>
-          <Gallery>
-            {items.map(({ id, webformatURL, largeImageURL, tags }) => {
-              return (
-                <ImageGalleryItem
-                  key={id}
-                  webformatURL={webformatURL}
-                  largeImageURL={largeImageURL}
-                  tags={tags}
-                />
-              );
-            })}
-          </Gallery>
-          {items.length < PER_PAGE ? '' : <Button loadMore={this.loadMore} />}
-        </Container>
-      );
-    }
+  if (status === Status.PENDING) {
+    return (
+      <Container>
+        <Loader />
+      </Container>
+    );
+  }
+  if (status === Status.REJECTED) {
+    return toast.error('Oops! Something is wrong!');
+  }
+  if (status === Status.RESOLVED) {
+    return (
+      <Container>
+        <Gallery>
+          {items.map(({ id, webformatURL, largeImageURL, tags }) => {
+            return (
+              <ImageGalleryItem
+                key={id}
+                webformatURL={webformatURL}
+                largeImageURL={largeImageURL}
+                tags={tags}
+              />
+            );
+          })}
+        </Gallery>
+        {items.length < PER_PAGE ? '' : <Button loadMore={loadMore} />}
+      </Container>
+    );
   }
 }
 
