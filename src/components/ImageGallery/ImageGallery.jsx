@@ -48,10 +48,7 @@ export function ImageGallery({ searchQuery }) {
           setItems(items => (page === 1 ? [...hits] : [...items, ...hits]));
           setStatus(Status.RESOLVED);
 
-          if (
-            page >= totalHits / hits.length ||
-            (hits.length === 0 && status === Status.RESOLVED)
-          ) {
+          if (page >= totalHits / hits.length || hits.length === 0) {
             toast.error(
               `We're sorry, but you've reached the end of search results.`
             );
