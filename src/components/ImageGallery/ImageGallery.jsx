@@ -22,15 +22,15 @@ export function ImageGallery({ searchQuery }) {
   const [page, setPage] = useState(1);
   const [query, setQuery] = useState('');
 
+  if (searchQuery !== query) {
+    setPage(1);
+    setItems([]);
+    setQuery(searchQuery);
+  }
+
   useEffect(() => {
     if (searchQuery === '') {
       return;
-    }
-
-    if (searchQuery !== query) {
-      setPage(1);
-      setItems([]);
-      setQuery(searchQuery);
     }
 
     setStatus(Status.PENDING);
