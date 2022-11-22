@@ -3,8 +3,13 @@ import { useState, useEffect } from 'react';
 import { fetchImg } from '../services/img-api';
 import { ImageGalleryItem } from '../ImageGalleryItem/ImageGalleryItem';
 import { toast } from 'react-toastify';
-import { Loader } from '../Loader/Loader';
-import { Container, Gallery, InitialPhrase } from './ImageGallery.styled';
+import { Loader, BtnLoader } from '../Loader/Loader';
+import {
+  Container,
+  Gallery,
+  InitialPhrase,
+  BtnChildren,
+} from './ImageGallery.styled';
 import { Button } from '../Button/Button';
 
 const PER_PAGE = 12;
@@ -73,16 +78,37 @@ export function ImageGallery({ searchQuery }) {
       </Container>
     );
   }
+  if (status === Status.REJECTED) {
+    return toast.error('Oops! Something is wrong!');
+  }
+
   if (status === Status.PENDING) {
     return (
       <Container>
+        <Gallery>
+          {items.map(({ id, webformatURL, largeImageURL, tags }) => {
+            return (
+              <ImageGalleryItem
+                key={id}
+                webformatURL={webformatURL}
+                largeImageURL={largeImageURL}
+                tags={tags}
+              />
+            );
+          })}
+        </Gallery>
+        {items.length < PER_PAGE ? (
+          ''
+        ) : (
+          <Button loadMore={loadMore}>
+            <BtnLoader />
+          </Button>
+        )}
         <Loader />
       </Container>
     );
   }
-  if (status === Status.REJECTED) {
-    return toast.error('Oops! Something is wrong!');
-  }
+
   if (status === Status.RESOLVED) {
     return (
       <Container>
@@ -98,7 +124,13 @@ export function ImageGallery({ searchQuery }) {
             );
           })}
         </Gallery>
-        {items.length < PER_PAGE ? '' : <Button loadMore={loadMore} />}
+        {items.length < PER_PAGE ? (
+          ''
+        ) : (
+          <Button loadMore={loadMore}>
+            <BtnChildren>Load more</BtnChildren>
+          </Button>
+        )}
       </Container>
     );
   }

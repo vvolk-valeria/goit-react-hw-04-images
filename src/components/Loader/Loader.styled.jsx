@@ -7,3 +7,8 @@ export const Spinner = styled.div`
   left: 50%;
   transform: translate(-50%, -50%);
 `;
+export const SpinnerBtn = styled.div`
+  display: inline-block;
+  margin-right: auto;
+  margin-left: auto;
+`;

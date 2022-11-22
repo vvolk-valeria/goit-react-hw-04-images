@@ -1,6 +1,7 @@
 import { RotatingLines } from 'react-loader-spinner';
+import { Bars } from 'react-loader-spinner';
 //import 'react-loader-spinner/dist/loader/css/react-spinner-loader.css';
-import { Spinner } from './Loader.styled';
+import { Spinner, SpinnerBtn } from './Loader.styled';
 
 export const Loader = () => {
   return (
@@ -13,5 +14,21 @@ export const Loader = () => {
         visible={true}
       />
     </Spinner>
+  );
+};
+
+export const BtnLoader = () => {
+  return (
+    <SpinnerBtn>
+      <Bars
+        height="20"
+        width="60"
+        color="#1d6b7d"
+        ariaLabel="bars-loading"
+        wrapperStyle={{}}
+        wrapperClass=""
+        visible={true}
+      />
+    </SpinnerBtn>
   );
 };
