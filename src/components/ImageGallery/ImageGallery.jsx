@@ -82,7 +82,7 @@ export function ImageGallery({ searchQuery }) {
     return toast.error('Oops! Something is wrong!');
   }
 
-  if (status === Status.PENDING) {
+  if (status === Status.PENDING || status === Status.RESOLVED) {
     return (
       <Container>
         <Gallery>
@@ -101,39 +101,40 @@ export function ImageGallery({ searchQuery }) {
           ''
         ) : (
           <Button loadMore={loadMore}>
-            <BtnLoader />
+            {status === Status.RESOLVED && <BtnChildren>Load more</BtnChildren>}
+            {status === Status.PENDING && <BtnLoader />}
           </Button>
         )}
-        <Loader />
+        {status === Status.PENDING && <Loader />}
       </Container>
     );
   }
 
-  if (status === Status.RESOLVED) {
-    return (
-      <Container>
-        <Gallery>
-          {items.map(({ id, webformatURL, largeImageURL, tags }) => {
-            return (
-              <ImageGalleryItem
-                key={id}
-                webformatURL={webformatURL}
-                largeImageURL={largeImageURL}
-                tags={tags}
-              />
-            );
-          })}
-        </Gallery>
-        {items.length < PER_PAGE ? (
-          ''
-        ) : (
-          <Button loadMore={loadMore}>
-            <BtnChildren>Load more</BtnChildren>
-          </Button>
-        )}
-      </Container>
-    );
-  }
+  // if (status === Status.RESOLVED) {
+  //   return (
+  //     <Container>
+  //       <Gallery>
+  //         {items.map(({ id, webformatURL, largeImageURL, tags }) => {
+  //           return (
+  //             <ImageGalleryItem
+  //               key={id}
+  //               webformatURL={webformatURL}
+  //               largeImageURL={largeImageURL}
+  //               tags={tags}
+  //             />
+  //           );
+  //         })}
+  //       </Gallery>
+  //       {items.length < PER_PAGE ? (
+  //         ''
+  //       ) : (
+  //         <Button loadMore={loadMore}>
+  //           <BtnChildren>Load more</BtnChildren>
+  //         </Button>
+  //       )}
+  //     </Container>
+  //   );
+  // }
 }
 
 ImageGallery.propTypes = {
